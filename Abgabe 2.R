@@ -12,12 +12,12 @@ library(readr)
 library(dplyr)
 library(tidyverse)
 # Load data
-q4_consumption <- read_csv('consumption_growth.csv')
+q4_consumption <- read_csv('consumption_growth2.csv')
 portfolio_returns <- read_csv('25_Portfolios_5x5.CSV', col_types = cols())
 fama_french_factors <- read_csv('F-F-Annual.csv')
 
 # Filter data by relevant years
-relevant_years <- c(1948, 1949, 1950, 1951, 1952)
+relevant_years <- 1948:2022
 
 q4_consumption <- q4_consumption %>%
   filter(YEAR %in% relevant_years)

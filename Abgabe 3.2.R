@@ -18,12 +18,12 @@ library(tidyverse)
 library(ggplot2)
 
 # Load data
-q4_consumption <- read_csv('consumption_growth.csv')
+q4_consumption <- read_csv('consumption_growth2.csv')
 portfolio_returns <- read_csv('25_Portfolios_5x5.CSV', col_types = cols())
 fama_french_factors <- read_csv('F-F-Annual.csv')
 
 # Filter data by relevant years
-relevant_years <- c(1948, 1949, 1950, 1951, 1952)
+relevant_years <- c(1948:2022)
 
 q4_consumption <- q4_consumption %>%
   filter(YEAR %in% relevant_years)
@@ -90,7 +90,7 @@ print(betas_and_returns)
 scatter_plot <- ggplot(betas_and_returns, aes(x = Consumption_Beta, y = Average_Excess_Return)) +
   geom_point(color = "blue", size = 3) +  # Points for the relationship
   geom_smooth(method = "lm", color = "red", se = FALSE) +  # Regression line
-  labs(title = "Average Excess Returns vs. Consumption Growth Beta per Portfolio [1948-1952]",
+  labs(title = "Average Excess Returns vs. Consumption Growth Beta per Portfolio [1948-2022]",
        x = "Consumption Growth Beta",
        y = "Average Excess Return") +
   theme_minimal()
@@ -99,3 +99,4 @@ print(scatter_plot)
 
 # Save the plot to a file (optional)
 ggsave("average_excess_returns_vs_consumption_growth_beta_scatter_plot.png", scatter_plot)
+

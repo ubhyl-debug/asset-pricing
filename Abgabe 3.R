@@ -18,12 +18,12 @@ library(tidyverse)
 library(ggplot2)
 
 # Load data
-q4_consumption <- read_csv('consumption_growth.csv')
+q4_consumption <- read_csv('consumption_growth2.csv')
 portfolio_returns <- read_csv('25_Portfolios_5x5.CSV', col_types = cols())
 fama_french_factors <- read_csv('F-F-Annual.csv')
 
 # Filter data by relevant years
-relevant_years <- c(1948, 1949, 1950, 1951, 1952)
+relevant_years <- c(1948:2022)
 
 q4_consumption <- q4_consumption %>%
   filter(YEAR %in% relevant_years)
@@ -92,7 +92,7 @@ plot <- ggplot(betas_and_returns) +
   geom_point(aes(x = Portfolio, y = Consumption_Beta, color = "Consumption Growth Beta"), size = 3, shape = 16) +
   geom_line(aes(x = Portfolio, y = Average_Excess_Return, group = 1), color = "black") +
   geom_line(aes(x = Portfolio, y = Consumption_Beta, group = 1), color = "black") +
-  labs(title = "Average excess returns vs. consumption growth beta per portfolio [1948-1952]",
+  labs(title = "Average excess returns vs. consumption growth beta per portfolio [1948-2022]",
        x = "Portfolio",
        y = "Values",
        color = "Legend") +
