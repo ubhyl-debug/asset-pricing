@@ -8,101 +8,97 @@ if (!requireNamespace("dplyr", quietly = TRUE)) {
 if (!requireNamespace("tidyverse", quietly = TRUE)) {
   install.packages("tidyverse")
 }
-if (!requireNamespace("ggplot2", quietly = TRUE)) {
-  install.packages("ggplot2")
-}
 
 library(readr)
 library(dplyr)
 library(tidyverse)
-library(ggplot2)
 
 # Load data
-q4_consumption <- read_csv('consumption_growth2.csv')
-portfolio_returns <- read_csv('25_Portfolios_5x5.CSV', col_types = cols())
-fama_french_factors <- read_csv('F-F-Annual_FF.csv')
+q4_consumption_c <- read_csv('consumption_growth2.csv')
+portfolio_returns_c <- read_csv('25_Portfolios_5x5.CSV', col_types = cols())
+fama_french_factors_c <- read_csv('F-F-Annual_FF.csv')
 
 # Filter data by relevant years
-relevant_years <- c(1948:2022)
+relevant_years_c <- c(1948:2022)
 
-q4_consumption <- q4_consumption %>%
-  filter(YEAR %in% relevant_years)
+q4_consumption_c <- q4_consumption_c %>%
+  filter(YEAR %in% relevant_years_c)
 
-portfolio_returns <- portfolio_returns %>%
-  filter(YEAR %in% relevant_years)
+portfolio_returns_c <- portfolio_returns_c %>%
+  filter(YEAR %in% relevant_years_c)
 
-fama_french_factors <- fama_french_factors %>%
-  filter(YEAR %in% relevant_years)
+fama_french_factors_c <- fama_french_factors_c %>%
+  filter(YEAR %in% relevant_years_c)
 
 # Calculate Excess Returns for each year
-excess_returns_list <- list()
+excess_returns_list_c <- list()
 
-for (year in relevant_years) {
-  rf <- fama_french_factors %>%
+for (year in relevant_years_c) {
+  rf_c <- fama_french_factors_c %>%
     filter(YEAR == year) %>%
     pull(RF)
   
-  portfolio_returns_year <- portfolio_returns %>%
+  portfolio_returns_year_c <- portfolio_returns_c %>%
     filter(YEAR == year)
   
-  excess_returns_year <- portfolio_returns_year %>%
-    mutate(across(-YEAR, ~ . - rf))  # Subtract rf from all columns except YEAR
+  excess_returns_year_c <- portfolio_returns_year_c %>%
+    mutate(across(-YEAR, ~ . - rf_c))  # Subtract rf from all columns except YEAR
   
-  excess_returns_list[[as.character(year)]] <- excess_returns_year
+  excess_returns_list_c[[as.character(year)]] <- excess_returns_year_c
 }
 
-excess_returns <- bind_rows(excess_returns_list)
+excess_returns_c <- bind_rows(excess_returns_list_c)
 
 # Align the data
-aligned_q4_consumption <- q4_consumption %>%
+aligned_q4_consumption_c <- q4_consumption_c %>%
   arrange(YEAR)
 
-aligned_excess_returns <- excess_returns %>%
+aligned_excess_returns_c <- excess_returns_c %>%
   arrange(YEAR)
 
-combined_data <- cbind(aligned_excess_returns, c_growth = aligned_q4_consumption$c_growth)
+combined_data_c <- cbind(aligned_excess_returns_c, c_growth = aligned_q4_consumption_c$c_growth)
 
-portfolio_excess_returns <- combined_data %>% select(-YEAR, -c_growth)
+portfolio_excess_returns_c <- combined_data_c %>% select(-YEAR, -c_growth)
 
 # Calculate consumption growth betas for each portfolio
-betas <- list()
+betas_c <- list()
 
-for(portfolio in colnames(portfolio_excess_returns)) {
+for(portfolio in colnames(portfolio_excess_returns_c)) {
   formula <- as.formula(paste("`", portfolio, "`", "~ c_growth", sep = ""))
-  model <- lm(formula, data = combined_data)
-  beta <- coef(model)["c_growth"]
-  betas[[portfolio]] <- beta
+  model_c <- lm(formula, data = combined_data_c)
+  beta_c <- coef(model_c)["c_growth"]
+  betas_c[[portfolio]] <- beta_c
 }
 
-betas_df <- data.frame(Portfolio = names(betas), Consumption_Beta = unlist(betas))
+betas_c_df <- data.frame(Portfolio = names(betas_c), Consumption_Beta = unlist(betas_c))
 
 # Calculate average excess returns for each portfolio
-average_excess_returns <- portfolio_excess_returns %>% 
+average_excess_returns_c <- portfolio_excess_returns_c %>% 
   summarise(across(everything(), mean))
 
-average_excess_returns_df <- pivot_longer(average_excess_returns, 
+average_excess_returns_c_df <- pivot_longer(average_excess_returns_c, 
                                           cols = everything(), 
                                           names_to = "Portfolio", 
                                           values_to = "Average_Excess_Return")
-print(average_excess_returns_df)
+print(average_excess_returns_c_df)
 
-betas_and_returns <- betas_df %>%
-  left_join(average_excess_returns_df, by = "Portfolio")
+betas_and_returns_c <- betas_c_df %>%
+  left_join(average_excess_returns_c_df, by = "Portfolio")
 
 # Perform cross-sectional regression
-cross_sectional_model <- lm(Average_Excess_Return ~ Consumption_Beta, data = betas_and_returns)
-summary(cross_sectional_model)
-print(cross_sectional_model)
+cross_sectional_model_c <- lm(Average_Excess_Return ~ Consumption_Beta, data = betas_and_returns_c)
+summary(cross_sectional_model_c)
+print(cross_sectional_model_c)
 # Extracting the coefficients
-lambda_market <- coef(cross_sectional_model)["Consumption_Beta"]
-gamma <- coef(cross_sectional_model)["(Intercept)"]
+lambda_market_c <- coef(cross_sectional_model_c)["Consumption_Beta"]
+gamma_c <- coef(cross_sectional_model_c)["(Intercept)"]
 
 # Print lambda_market and gamma
-print(paste("Lambda_market (Risk Premium):", lambda_market))
-print(paste("Gamma (Intercept):", gamma))
+print(paste("Lambda_market (Risk Premium):", lambda_market_c))
+print(paste("Gamma (Intercept):", gamma_c))
 
 # Plot the relationship
-plot <- ggplot(betas_and_returns, aes(x = Consumption_Beta, y = Average_Excess_Return)) +
+plot <- ggplot(betas_and_returns_c, aes(x = Consumption_Beta, y = Average_Excess_Return)) +
   geom_point(color = "blue", size = 3) +  # Points for the relationship
   geom_smooth(method = "lm", color = "red", se = FALSE) +  # Regression line
   labs(title = "Average Excess Returns vs. Consumption Growth Beta per Portfolio [1948-2022]",
@@ -116,4 +112,4 @@ print(plot)
 ggsave("average_excess_returns_vs_consumption_growth_beta_scatter_plot.png", plot)
 
 # Display the betas and average returns along with the regression results
-betas_and_returns
+betas_and_returns_c
